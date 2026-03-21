@@ -1,0 +1,4 @@
+--editable lib
+autopep8==2.0.2
+pytest==7.4.0
+pytest-watch==4.2.0
