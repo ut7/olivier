@@ -8,18 +8,15 @@ from olivier.outils import (
     extrait_date,
     format_numero_facture,
     affiche_mois_facturation,
-    formate_date,
     nom_technique,
+    formate_date,
     print_rouge,
 )
 from olivier.api_grist import (
     recupere_donnees_grist_attachment,
     recupere_grist_attachment,
-    recupere_tiers,
     refuse_facture_grist,
-    noms_projets,
 )
-from olivier.tiers import tiers_du_contact, lit_tiers
 from olivier.entrees_sorties import (
     affiche_champs,
     verifier_facture_non_recue,
@@ -30,10 +27,9 @@ from olivier.entrees_sorties import (
 CHAMPS_OBLIGATOIRES = [
     "Nom",
     "Facture",
-    "Date de facture",
+    "Date de dépôt",
     "Montant HT",
     "Montant TTC",
-    "Projet",
 ]
 CHAMPS_IDENTIFICATION = [
     "Nom technique",
@@ -54,23 +50,20 @@ def affiche_champs_identification(facture):
     affiche_champs(champs)
 
 
-def demande_champs_manquants(facture,
-                             input=lambda prompt: input(prompt),
-                             noms_projets=noms_projets):
+def demande_champs_manquants(facture, input=lambda prompt: input(prompt)):
     for parametre in CHAMPS_OBLIGATOIRES:
         if parametre not in facture:
             facture[parametre] = input(f"Quel {parametre} ? ").strip()
-    if facture["Projet"] in noms_projets() and "grist_projet" in facture:
-        if "Nbr_de_jours" not in facture:
-            facture["Nbr_de_jours"] = extrait_montant(input("Quel nombre de jours ? "))
-        if "Frais_HT" not in facture:
-            total_frais = 0
-            while True:
-                frais = input("Quel frais HT ([Entrer] pour finir) ? ")
-                if frais == "":
-                    break
-                total_frais += extrait_montant(frais)
-            facture["Frais_HT"] = total_frais
+    if "Nbr_de_jours" not in facture:
+        facture["Nbr_de_jours"] = extrait_montant(input("Quel nombre de jours ? "))
+    if "Frais_HT" not in facture:
+        total_frais = 0
+        while True:
+            frais = input("Quel frais HT ([Entrer] pour finir) ? ")
+            if frais == "":
+                break
+            total_frais += extrait_montant(frais)
+        facture["Frais_HT"] = total_frais
 
     return True
 
@@ -113,7 +106,7 @@ def accepte_facture(facture):
 
 
 def format_champs(facture):
-    facture["Date de facture"] = extrait_date(facture["Date de facture"])
+    facture["Date de dépôt"] = extrait_date(facture["Date de dépôt"])
     facture["Facture"] = format_numero_facture(facture["Facture"])
     facture["Montant TTC"] = extrait_montant(facture["Montant TTC"])
     facture["Montant HT"] = extrait_montant(facture["Montant HT"])
@@ -121,30 +114,10 @@ def format_champs(facture):
         facture["Montant TTC"] = -abs(facture["Montant TTC"])
         facture["Montant HT"] = -abs(facture["Montant HT"])
     if "Narration" not in facture:
-        facture["Narration"] = affiche_mois_facturation(facture["Date de facture"])
+        facture["Narration"] = affiche_mois_facturation(facture["Date de dépôt"])
         if "Prénom" in facture and len(facture['Prénom']) > 0:
             facture["Narration"] = f'{facture["Prénom"]} {facture["Narration"]}'
     return True
-
-
-def verifie_existance_tiers(
-    facture, recupere_tiers=recupere_tiers, print=lambda message: print(message)
-):
-    if "Nom" not in facture:
-        print("Le Nom est manquant, le contact n'a pas été reconnu")
-        return False
-    facture["Nom technique"] = nom_technique(facture["Nom"])
-    nt = facture["Nom technique"]
-    tiers = lit_tiers(recupere_tiers)
-    if nt in tiers:
-        facture["Nom"] = tiers[nt]["nom"]
-        if "Projet" not in facture and len(tiers[nt]["projet"]) == 1:
-            facture["Projet"] = tiers[nt]["projet"][0]
-        return True
-    print(f"Le tiers '{nt}' n'existe pas")
-    print("Il faut le créer dans grist")
-    print("et lui créer un compte dans accounts.beancount")
-    return False
 
 
 def verifie_les_champs(facture, print_rouge=print_rouge):
@@ -154,31 +127,13 @@ def verifie_les_champs(facture, print_rouge=print_rouge):
     return True
 
 
-def identification_contact(
-    facture, tiers_du_contact=tiers_du_contact, print=lambda message: print(message)
-):
-    if "Contact" not in facture:
-        return True
-
-    tiers = tiers_du_contact(facture["Contact"])
-    if tiers:
-        facture["Nom"] = tiers["nom"]
-        if "prenom" in tiers:
-            facture["Prénom"] = tiers["prenom"]
-        if "Projet" not in facture and len(tiers["projet"]) == 1:
-            facture["Projet"] = tiers["projet"][0]
-        else:
-            print("Ce tiers a plusieurs projets")
-            print(f"Projets : {', '.join(tiers['projet'])}")
-    return True
-
-
 def identification_facture_grist(facture):
     if "grist_projet" not in facture:
         return True
 
-    facture["Date de facture"] = formate_date(datetime.fromtimestamp(facture["Date"]))
+    facture["Date de dépôt"] = formate_date(datetime.fromtimestamp(facture["Date_de_depot"]))
     facture["Montant HT"] = facture["Nbr_de_jours"] * facture['TJ'] + facture["Frais_HT"]
+    facture["Nom technique"] = nom_technique(facture["Nom"])
 
     if facture["Montant HT"] == 0:
         facture["TVA calculée"] = facture["Montant TTC"]
@@ -217,8 +172,6 @@ def extraction_pdf_facture_grist(facture):
 FILTRES_FACTURE_RECUE = [
     identification_facture_grist,
     extraction_pdf_facture_grist,
-    identification_contact,
-    verifie_existance_tiers,
     demande_champs_manquants,
     format_champs,
     verifie_les_champs,

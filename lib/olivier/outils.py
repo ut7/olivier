@@ -10,8 +10,6 @@ from jinja2 import FileSystemLoader, Environment
 import locale
 import dateparser
 
-from olivier.tiers import lit_tiers
-
 locale.setlocale(category=locale.LC_ALL, locale="fr_FR.UTF-8")
 
 CLAUSE_SOCIALE = "ClauseSociale"
