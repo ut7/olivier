@@ -9,7 +9,7 @@ build-backend = "hatchling.build"
 olivier = "olivier.olivier:app"
 
 [project]
-name = "anita-bean"
+name = "olivier"
 version = "0.0.1"
 requires-python = ">=3.10"
 dependencies = [
@@ -19,7 +19,6 @@ dependencies = [
   "Jinja2==3.1.2",
   "python-dateutil==2.8.2",
   "requests==2.31.0",
-  "rich",
-  "typer==0.13.0",
+  "typer==0.24.1",
   "Unidecode==1.3.6",
 ]
