@@ -120,7 +120,7 @@ STRUCTURES_DOCUMENTS_SUIVIS = {
     },
     "v3": {
         "nom_table_factures_recues": "Factures_soustraitants",
-        "filtres": {"Acceptee": False, "Refusee": False},
+        "filtres": {"Etat": "Déposée"},
         "adaptateur": adaptateur_v3,
         "table_contacts": "Prestataires",
     },
