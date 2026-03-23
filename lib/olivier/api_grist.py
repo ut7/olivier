@@ -1,6 +1,5 @@
 import os
 from collections import namedtuple
-from datetime import datetime
 from cachetools import cached
 from grist_api import GristDocAPI
 
@@ -177,44 +176,6 @@ def recupere_donnees_grist_attachment(nom_projet, id_attachment):
 def recupere_grist_attachment(nom_projet, id_attachment):
     api = recupere_api(nom_projet)
     return api.call(f"attachments/{id_attachment}/download", method="GET")
-
-
-def publie_grand_livre_projet(nom_projet, transactions):
-    api = recupere_api(nom_projet)
-    api.sync_table(
-        "Grand_Livre",
-        transactions,
-        [("key", "key")],
-        [
-            ("Date", "Date"),
-            ("Flag", "Flag"),
-            ("Tiers", "Tiers"),
-            ("Narration", "Narration"),
-            ("Montant_EUR_HT_", "Montant_EUR_HT_"),
-            ("Solde_EUR_HT_", "Solde_EUR_HT_"),
-            ("Tags", "Tags"),
-        ],
-    )
-    infos = api.fetch_table("Informations_publication_des_comptes")
-    if len(infos) == 0:
-        api.add_records(
-            "Informations_publication_des_comptes",
-            [
-                {
-                    "Date_de_deniere_mise_a_jour": datetime.now(),
-                }
-            ],
-        )
-    else:
-        api.update_records(
-            "Informations_publication_des_comptes",
-            [
-                {
-                    "id": 1,
-                    "Date_de_deniere_mise_a_jour": datetime.now(),
-                }
-            ],
-        )
 
 
 def actualise_budget_grist(nom_projet, facture, mois_facturation):
