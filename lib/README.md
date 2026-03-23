@@ -1,5 +1,10 @@
 ## Installation
 
+Installation python (3.11, peut-être plus) :
+    > python3 -m venv venv
+    > . ./venv/bin/activate
+    > pip install -r requirements.txt
+
 Initialisation du fichier d'environnement pour les scripts :
 Créer un fichier `.env` à la racine du projet avec un contenu adapté avec vos info personnelles :
 (Permet aux plugins `direnv` ou `dotenv` de setter automatiquement un environnement quand on entre dans le répertoire)
@@ -11,21 +16,17 @@ Créer un fichier `.env` à la racine du projet avec un contenu adapté avec vos
     # par exemple `open` qui fonctionne sous mac et sous certaines distributions Linux
     export CMD_OUVERTURE_EMAIL=open
 
-## Exécution
+### Tests
 
-    $> . .env
-    $> . ./venv/bin/activate
-    $> olivier factures importer
+Pour lancer les tests unitaires des outils :
 
+    > ptw
+
+ou, pour lancer en mode watch les "webtest"
+    > ptw -- -m webtest
 
 ## Toutes les commandes
 
 olivier
     factures
         importer
-
-## Aides
-
-    $> olivier --help
-    $> olivier factures --help
-    $> olivier factures importer --help
