@@ -13,7 +13,7 @@ Créer un fichier `.env` à la racine du projet avec un contenu adapté avec vos
 
 ## Exécution
 
-    $> . .env
+    $> . ./.env
     $> . ./venv/bin/activate
     $> olivier factures importer
 
