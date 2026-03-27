@@ -8,7 +8,7 @@ from olivier.outils import (
     print_rouge,
 )
 from olivier.outils import nom_technique, filtre_caracteres_nom_fichier
-from olivier.outils import date_pour_le_mois
+from olivier.outils import date_pour_le_mois, timestamp_utc
 
 
 def test_extrait_montant():
@@ -134,6 +134,11 @@ def test_date_pour_le_mois():
     assert date_pour_le_mois(2, aujourd_hui) == datetime(2026, 2, 28)  # mois passé même année
     assert date_pour_le_mois(12, aujourd_hui) == datetime(2025, 12, 31)  # mois futur → année précédente
     assert date_pour_le_mois(1, aujourd_hui) == datetime(2026, 1, 31)  # janvier même année
+
+
+def test_timestamp_utc():
+    assert timestamp_utc(datetime(2026, 3, 31)) == 1774915200
+    assert timestamp_utc(datetime(2026, 2, 28)) == 1772236800
 
 
 def test_print_rouge():

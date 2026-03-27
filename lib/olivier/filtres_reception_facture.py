@@ -179,4 +179,11 @@ FILTRES_FACTURE_RECUE = [
 ]
 
 
+FILTRES_TELECHARGEMENT = [
+    identification_facture_grist,
+    extraction_pdf_facture_grist,
+    format_champs,
+]
+
+
 FILTRES = FILTRES_FACTURE_RECUE + [verifier_facture_non_recue]

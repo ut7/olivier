@@ -1,3 +1,4 @@
+import calendar
 import math
 import re
 import unidecode
@@ -153,3 +154,7 @@ def filtre_caracteres_nom_fichier(string):
 def print_rouge(string):
     console = Console()
     console.print(f"[red][bold]{string}")
+
+
+def timestamp_utc(dt):
+    return calendar.timegm(dt.timetuple())

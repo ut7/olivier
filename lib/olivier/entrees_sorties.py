@@ -50,9 +50,11 @@ def document_archives():
     return os.environ["REPERTOIRE_DOCUMENTS"]
 
 
-def chemin_fichier_facture(facture):
+def chemin_fichier_facture(facture, date=None):
     repertoire = document_archives()
-    date = facture['Date de dépôt'].strftime("%Y%m%d")
+    if date is None:
+        date = facture['Date de dépôt']
+    date = date.strftime("%Y%m%d")
     nom = facture['Nom technique']
     extension = facture['extension_fichier'] if 'extension_fichier' in facture else ''
     numero_facture = facture['Facture']

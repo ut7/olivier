@@ -2,6 +2,7 @@ import os
 from collections import namedtuple
 from cachetools import cached
 from grist_api import GristDocAPI
+from olivier.outils import timestamp_utc
 
 LIGNE_GL = namedtuple(
     "LIGNE_GL", "key Date Flag Tiers Narration Montant_EUR_HT_ Solde_EUR_HT_ Tags"
@@ -133,6 +134,20 @@ def factures_non_traitees(nom_projet):
     factures = api.fetch_table(
         structure['nom_table_factures_recues'],
         structure['filtres']
+    )
+    return [
+        adaptateur(facture._asdict(), api) for facture in factures if facture.PDF_Facture is not None
+    ]
+
+
+def factures(nom_projet, mois_facturation):
+    mois_timestamp = timestamp_utc(mois_facturation)
+    api = recupere_api(nom_projet)
+    structure = recupere_structure(api)
+    adaptateur = structure["adaptateur"]
+    factures = api.fetch_table(
+        structure['nom_table_factures_recues'],
+        {"Mois_de_facturation": mois_timestamp}
     )
     return [
         adaptateur(facture._asdict(), api) for facture in factures if facture.PDF_Facture is not None
