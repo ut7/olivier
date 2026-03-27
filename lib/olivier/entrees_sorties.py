@@ -3,9 +3,7 @@ import glob
 from rich.console import Console
 from rich.table import Table
 from olivier.outils import (
-    extrait_date,
     filtre_caracteres_nom_fichier,
-    affiche_mois_facturation
 )
 
 
@@ -94,6 +92,6 @@ def cherche_piece_archivee(facture, input=lambda prompt: input(prompt)):
             print(files)
             exit(1)
         print(f'Aucun fichier trouvé pour le masque {masque_fichier}')
-        reponse = input(f'Ré-essayer ? o/N')
+        reponse = input('Ré-essayer ? o/N')
         if reponse.lower() != 'o':
             return

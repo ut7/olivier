@@ -1,12 +1,9 @@
 import math
-import os
 import re
-from subprocess import run
 import unidecode
 from rich.console import Console
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
-from jinja2 import FileSystemLoader, Environment
 import locale
 import dateparser
 
@@ -128,43 +125,10 @@ def format_numero_facture(numero):
     return numero_formate
 
 
-def compte_depenses(nom_technique, sous_traitant):
-    if "compte" in sous_traitant:
-        return sous_traitant["compte"]
-    else:
-        return f"Expenses:SousTraitants:{nom_technique}"
-
-
-def compte_credit(projet):
-    if projet == CLAUSE_SOCIALE:
-        return "Assets:Qonto:Provisions:ClauseSociale"
-    if projet == PROVISIONS:
-        return "Assets:Qonto:Provisions:DepensesRecurentes"
-    if projet == PORTAGE:
-        return "Assets:Qonto:ADisposition:Portage:Dinum"
-    if projet == PROJET_UT7:
-        return "Assets:Qonto:ADisposition"
-    if projet.startswith(AOF):
-        return f"Assets:Qonto:{projet}"
-    return f"Assets:Qonto:Projets:{projet}"
-
-
 def projet_mois(projet, mois_facturation):
     nom_projet = re.sub(r":Frais$", "", projet)
     nom_projet = re.sub(r".*:", "", nom_projet)
     return f"{nom_projet}_{mois_facturation}"
-
-
-def facturation_ouverte(projet, date_mois_facturation):
-    mois_facturation = date_mois_facturation.strftime("%m_%Y")
-    lien = projet_mois(projet, mois_facturation)
-    resultat = run(
-        args=["grep", f'cloture_facturation: "{lien}', "transactions.beancount"],
-        capture_output=True,
-        text=True,
-    )
-    cloture_trouvee = str(resultat.stdout)
-    return len(cloture_trouvee) == 0
 
 
 def calcule_frais_change_qonto(montant):
@@ -173,66 +137,13 @@ def calcule_frais_change_qonto(montant):
     return round(deux_pourcent / 100, 2)
 
 
-def transaction_salaire(date, personne, net_a_payer, pas, net_a_payer_avec_pas):
-    assert abs(net_a_payer + pas - net_a_payer_avec_pas) < 0.001
-    return transactions({
-        "date": formate_date(date),
-        "personne": personne,
-        "nom_technique": nom_technique(personne),
-        "mois_paye": affiche_mois_facturation(date),
-        "net_a_payer": net_a_payer,
-        "pas": pas,
-        "net_a_payer_avec_pas": -net_a_payer_avec_pas
-    }, "transaction_salaire.beancount")
-
-
-def transaction_balance(balance, date):
-    date = formate_date(date)
-    return f"{date} balance Assets:Qonto                     {balance:10.2f} EUR"
-
-
-def transactions(entrees, nom_template):
-    project_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    template_loader = FileSystemLoader(
-        searchpath=f"{project_path}/olivier/templates"
-    )
-    template_env = Environment(loader=template_loader)
-    template = template_env.get_template(nom_template)
-    return template.render(entrees)
-
-
-def met_en_retard_transaction(virement):
-    date = virement["date"]
-    date_str = formate_date(date)
-    nouvelle_date = formate_date(date + relativedelta(months=1))
-    nom = re.sub("/", "\/", re.escape(virement["personne"]))
-    numero_facture = virement["numero_facture"]
-    compte_depart = "EnAttenteDePaiement"
-    compte_arrive = "EnRetard1A30Jours"
-    return f"\
-perl -i -w -0pe 's/({date_str}) ! (\"{nom}[^\n]*{numero_facture} :[^\n]*)\n([^\n]*){compte_depart}([^\n]*)\n/\
-$1 * $2\n\
-$3{compte_depart}$4\n\
-$3{compte_arrive}\n\
-\n\
-{nouvelle_date} ! $2\n\
-$3{compte_arrive}$4\n/sg' transactions.beancount"
-
-
-def coche_transaction(date, virement):
-    lien = ""
-    nom = virement["personne"].replace("/", "\\/").replace("'", ".")
-    debut_narration = ""
-    if "numero_facture" in virement:
-        lien = f".*\\{genere_lien_facture(virement['numero_facture'])}"
-    elif "debut_narration" in virement:
-        debut_narration = f".*{virement['debut_narration']}"
-
-    if "lien" in virement:
-        lien = f".*\\^{virement['lien']}"
-
-    date_str = formate_date(date)
-    return f"perl -i -pe 's/....-..-.. ! (\"{nom}{debut_narration}{lien})/{date_str} * $1/sg' transactions.beancount"
+def date_pour_le_mois(mois, aujourd_hui=None):
+    if aujourd_hui is None:
+        aujourd_hui = datetime.today()
+    annee = aujourd_hui.year
+    if mois > aujourd_hui.month:
+        annee -= 1
+    return dernier_jour_du_mois(datetime(annee, mois, 1))
 
 
 def filtre_caracteres_nom_fichier(string):
