@@ -3,13 +3,14 @@ import glob
 from rich.console import Console
 from rich.table import Table
 from olivier.outils import (
+    extrait_montant,
     filtre_caracteres_nom_fichier,
 )
 
 
 def format_montant(v):
     if isinstance(v, str):
-        v = float(v.replace(",", "."))
+        v = extrait_montant(v)
     formatted = f"{v:,.2f} €".replace(",", " ")
     entier, decimales = formatted.split(".", 1)
     return f"{entier.rjust(6)},{decimales}"
@@ -50,11 +51,9 @@ def document_archives():
     return os.environ["REPERTOIRE_DOCUMENTS"]
 
 
-def chemin_fichier_facture(facture, date=None):
+def chemin_fichier_facture(facture):
     repertoire = document_archives()
-    if date is None:
-        date = facture['Date de dépôt']
-    date = date.strftime("%Y%m%d")
+    date = facture['Mois de facturation'].strftime("%Y%m%d")
     nom = facture['Nom technique']
     extension = facture['extension_fichier'] if 'extension_fichier' in facture else ''
     numero_facture = facture['Facture']

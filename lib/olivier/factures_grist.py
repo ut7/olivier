@@ -48,5 +48,5 @@ def telecharge(projet, mois):
     for facture in factures(projet, mois_facturation):
         facture["grist_projet"] = projet
         if all(filtre(facture) for filtre in FILTRES_TELECHARGEMENT):
-            destination = chemin_fichier_facture(facture, mois_facturation)
+            destination = chemin_fichier_facture(facture)
             range_fichier(facture["fichier_temporaire"].name, destination)

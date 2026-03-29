@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from collections import namedtuple
 from cachetools import cached
 from grist_api import GristDocAPI
@@ -93,6 +94,7 @@ def adaptateur_v2(facture, _api):
 
 
 def adaptateur_v3(facture, _api):
+    facture["Mois de facturation"] = datetime.fromtimestamp(facture["Mois_de_facturation"])
     facture["TJ"] = facture["gristHelper_Display"]
     facture["Contact"] = facture["Email"]
     facture["Nom"] = facture["gristHelper_Display2"]
